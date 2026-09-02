@@ -1,3 +1,20 @@
+import "dotenv/config";
+
+import {
+  ensureAuthTables,
+  ensureAdminUser,
+  createSessionMiddleware,
+  requireAuth,
+  loginRateLimit,
+  recordLoginFailure,
+  resetLoginAttempts,
+  createSession,
+  destroySession,
+  setSessionCookie,
+  clearSessionCookie,
+  verifyPassword
+} from "./auth.js";
+
 import express from "express";
 import pg from "pg";
 import crypto from "node:crypto";
@@ -49,6 +66,16 @@ const pool = new Pool({
 const db = (sql, params = []) => pool.query(sql, params);
 
 /* =========================================================
+   AUTENTICACIÓN
+   ========================================================= */
+
+await ensureAuthTables(db);
+await ensureAdminUser(db);
+
+app.use(
+  createSessionMiddleware(db)
+);
+/* =========================================================
    BASE DE DATOS
    ========================================================= */
 
@@ -84,6 +111,7 @@ await db(`
     created_at timestamptz DEFAULT now()
   );
 `);
+
 
 /* =========================================================
    RESPUESTA PUBLICA DE DISPOSITIVOS
@@ -274,6 +302,203 @@ async function run(
   }
 }
 
+/* =========================================================
+   AUTENTICACIÓN - LOGIN
+   ========================================================= */
+
+app.post(
+  "/api/auth/login",
+  async (req, res) => {
+
+    try {
+
+      const username =
+        String(
+          req.body?.username || ""
+        ).trim();
+
+      const password =
+        String(
+          req.body?.password || ""
+        );
+
+      if (!username || !password) {
+        return res.status(400).json({
+          ok: false,
+          error: "Usuario y contraseña son obligatorios"
+        });
+      }
+
+      const rate =
+        loginRateLimit(req);
+
+      if (!rate.allowed) {
+        return res.status(429).json({
+          ok: false,
+          error:
+            "Demasiados intentos. Intenta nuevamente más tarde.",
+          retryAfter: rate.retryAfter
+        });
+      }
+
+      const result =
+        await db(
+          `
+          SELECT
+            id,
+            username,
+            password_hash,
+            role,
+            active
+          FROM users
+          WHERE username = $1
+          LIMIT 1
+          `,
+          [username]
+        );
+
+      if (
+        !result.rows.length ||
+        !result.rows[0].active
+      ) {
+
+        recordLoginFailure(req);
+
+        return res.status(401).json({
+          ok: false,
+          error: "Usuario o contraseña incorrectos"
+        });
+      }
+
+      const user =
+        result.rows[0];
+
+      const valid =
+        await verifyPassword(
+          password,
+          user.password_hash
+        );
+
+      if (!valid) {
+
+        recordLoginFailure(req);
+
+        return res.status(401).json({
+          ok: false,
+          error: "Usuario o contraseña incorrectos"
+        });
+      }
+
+      resetLoginAttempts(req);
+
+      const session =
+        await createSession(
+          db,
+          user.id
+        );
+
+      await db(
+        `
+        UPDATE users
+        SET last_login = now()
+        WHERE id = $1
+        `,
+        [user.id]
+      );
+
+      setSessionCookie(
+        res,
+        session.token
+      );
+
+      return res.json({
+        ok: true,
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role
+        }
+      });
+
+    } catch (error) {
+
+      console.error(
+        "[AUTH LOGIN]",
+        error?.stack || error
+      );
+
+      return res.status(500).json({
+        ok: false,
+        error: "Error interno de autenticación"
+      });
+    }
+  }
+);
+
+
+/* =========================================================
+   AUTENTICACIÓN - LOGOUT
+   ========================================================= */
+
+app.post(
+  "/api/auth/logout",
+  async (req, res) => {
+
+    try {
+
+      await destroySession(
+        db,
+        req
+      );
+
+      clearSessionCookie(res);
+
+      return res.json({
+        ok: true
+      });
+
+    } catch (error) {
+
+      console.error(
+        "[AUTH LOGOUT]",
+        error?.stack || error
+      );
+
+      clearSessionCookie(res);
+
+      return res.status(500).json({
+        ok: false,
+        error: "Error cerrando sesión"
+      });
+    }
+  }
+);
+
+
+/* =========================================================
+   AUTENTICACIÓN - USUARIO ACTUAL
+   ========================================================= */
+
+app.get(
+  "/api/auth/me",
+  requireAuth,
+  (req, res) => {
+
+    return res.json({
+      ok: true,
+      user: req.user
+    });
+  }
+);
+/* =========================================================
+   PROTEGER API
+   Todas las rutas /api/* posteriores requieren sesión.
+   ========================================================= */
+
+app.use(
+  "/api",
+  requireAuth
+);
 /* =========================================================
    DISPOSITIVOS
    ========================================================= */
@@ -2047,6 +2272,7 @@ app.post(
 
 app.get(
   "*splat",
+  requireAuth,
   (req, res) => {
     res.sendFile(
       path.join(
@@ -2057,7 +2283,6 @@ app.get(
     );
   }
 );
-
 /* =========================================================
    INICIAR SERVIDOR
    ========================================================= */

@@ -187,3 +187,22 @@ document.addEventListener("DOMContentLoaded", () => {
   showPage("dashboard");
 
 });
+
+
+async function logout() {
+  try {
+    const response = await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include"
+    });
+
+    if (!response.ok) {
+      throw new Error("No se pudo cerrar la sesión");
+    }
+
+    window.location.href = "/login.html";
+  } catch (error) {
+    console.error("[LOGOUT]", error);
+    alert("No se pudo cerrar la sesión.");
+  }
+}

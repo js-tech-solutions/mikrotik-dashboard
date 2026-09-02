@@ -963,3 +963,20 @@ text-align: center;
 color: #94a3b8;
 font-size: 11px;
 }
+
+
+.nav-spacer {
+  flex: 1;
+  min-height: 24px;
+}
+
+.logout-button {
+  margin-top: auto;
+  width: 100%;
+  text-align: left;
+  color: #b91c1c;
+}
+
+.logout-button:hover {
+  background: #fef2f2;
+}
