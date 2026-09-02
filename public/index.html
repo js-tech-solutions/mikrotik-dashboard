@@ -1,0 +1,1086 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+
+<meta charset="utf-8">
+
+<meta name="viewport"
+content="width=device-width,initial-scale=1">
+
+<title>MikroTik Manager - Pro</title>
+
+<link rel="stylesheet"
+href="/styles.css">
+
+</head>
+
+<body>
+
+<div class="app">
+
+<!-- =====================================================
+     SIDEBAR
+===================================================== -->
+
+<aside>
+
+<div class="brand">
+
+<span>M</span>
+
+<div>
+
+<b>MikroTik</b>
+
+<small>Manager Pro</small>
+
+</div>
+
+</div>
+
+<nav>
+
+<button data-page="dashboard">
+⌂ Dashboard
+</button>
+
+<button data-page="devices">
+◉ Equipos
+</button>
+
+<button data-page="monitor">
+◈ Monitor
+</button>
+
+<button data-page="builder">
+▤ Generador
+</button>
+
+<button data-page="hotspot">
+🎫 Hotspot / Fichas
+</button>
+
+<button data-page="terminal">
+⌘ Terminal
+</button>
+
+<button data-page="audit">
+☷ Auditoría
+</button>
+
+</nav>
+
+<footer>
+
+RouterOS Script Builder<br>
+
+v3
+
+</footer>
+
+</aside>
+
+
+<!-- =====================================================
+     MAIN
+===================================================== -->
+
+<main>
+
+<header>
+
+<div>
+
+<h1 id="pageTitle">
+Dashboard
+</h1>
+
+<p id="pageDesc">
+Resumen de infraestructura MikroTik
+</p>
+
+</div>
+
+
+</header>
+
+
+<!-- =====================================================
+     DASHBOARD
+===================================================== -->
+
+<section
+id="dashboard"
+class="page">
+
+<div class="cards">
+
+<div class="card">
+
+<span>Total equipos</span>
+
+<strong id="statTotal">
+0
+</strong>
+
+</div>
+
+
+<div class="card">
+
+<span>Online</span>
+
+<strong id="statOnline">
+—
+</strong>
+
+</div>
+
+
+<div class="card">
+
+<span>Offline</span>
+
+<strong id="statOffline">
+—
+</strong>
+
+</div>
+
+
+<div class="card">
+
+<span>Auditorías</span>
+
+<strong id="statAudit">
+0
+</strong>
+
+</div>
+
+</div>
+<div class="panel">
+  <div class="top">
+    <div>
+      <h2>Estado de equipos</h2>
+      <span class="muted">Monitoreo desde caché</span>
+    </div>
+  </div>
+
+  <div id="dashboardDevices">
+    <div class="empty">
+      Cargando equipos...
+    </div>
+  </div>
+</div>
+
+
+<div class="panel">
+
+<div class="top">
+
+<h2>
+Actividad reciente
+</h2>
+
+<button
+class="secondary"
+onclick="loadDashboard()">
+
+Actualizar
+
+</button>
+
+</div>
+
+<div id="dashboardActivity">
+
+<div class="empty">
+No hay actividad reciente.
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     EQUIPOS
+===================================================== -->
+
+<section
+id="devices"
+class="page hidden">
+
+<div class="panel">
+
+<div class="top">
+
+<div>
+
+<h2>
+Equipos MikroTik
+</h2>
+
+<p class="muted">
+Administración de dispositivos RouterOS
+</p>
+
+</div>
+
+<div class="actions">
+
+<button
+class="secondary"
+onclick="refreshDevices()">
+🔄 Actualizar
+</button>
+
+<button
+class="primary"
+onclick="showDeviceForm()">
++ Agregar equipo
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div
+id="deviceForm"
+class="device-form hidden">
+
+<h3>
+Nuevo equipo
+</h3>
+
+
+<div class="form-grid">
+
+
+<label>
+    Fabricante
+
+    <select
+      id="dev-vendor"
+      onchange="updateVendorForm()">
+      <option value="mikrotik">MikroTik</option>
+      <option value="cisco">Cisco</option>
+    </select>
+
+  </label>
+
+  <label>
+    Nombre
+
+    <input id="dev-name"
+placeholder="Router-Core">
+
+</label>
+
+
+<label>
+
+Host / IP
+
+<input
+id="dev-host"
+placeholder="192.168.88.1">
+
+</label>
+
+
+<label>
+
+Puerto API
+
+<input
+id="dev-port"
+type="number"
+value="8728">
+
+</label>
+
+
+<label>
+
+Usuario
+
+<input
+id="dev-user"
+placeholder="admin">
+
+</label>
+
+
+<label>
+
+Contraseña
+
+<input
+id="dev-pass"
+type="password">
+
+</label>
+
+
+<label>
+
+TLS
+
+<select id="dev-tls">
+
+<option value="false">
+Desactivado
+</option>
+
+<option value="true">
+Activado
+</option>
+
+</select>
+
+</label>
+
+
+<label>
+
+Tags
+
+<input
+id="dev-tags"
+placeholder="core,noc">
+
+</label>
+
+</div>
+
+
+<div class="actions">
+
+<button
+class="secondary"
+onclick="hideDeviceForm()">
+
+Cancelar
+
+</button>
+
+<button
+class="primary"
+onclick="createDevice()">
+
+Guardar equipo
+
+</button>
+
+</div>
+
+</div>
+
+
+<div id="devicesList">
+
+<div class="empty">
+Cargando equipos...
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     MONITOR
+===================================================== -->
+
+<section
+id="monitor"
+class="page hidden">
+
+<div class="panel">
+
+<div class="top">
+
+<div>
+
+<h2>
+Monitor RouterOS
+</h2>
+
+<p class="muted">
+Consulta información del equipo remoto
+</p>
+
+</div>
+
+
+<select id="monitorDevice">
+
+<option value="">
+Seleccionar equipo...
+</option>
+
+</select>
+
+</div>
+
+
+<div class="monitor-actions">
+
+<button onclick="monitorRequest('identity')">
+Identity
+</button>
+
+<button onclick="monitorRequest('resource')">
+Recursos
+</button>
+
+<button onclick="monitorRequest('interfaces')">
+Interfaces
+</button>
+
+<button onclick="monitorRequest('ip')">
+IP
+</button>
+
+<button onclick="monitorRequest('routes')">
+Rutas
+</button>
+
+<button onclick="monitorRequest('firewall')">
+Firewall
+</button>
+
+<button onclick="monitorRequest('dhcp')">
+DHCP
+</button>
+
+<button onclick="monitorRequest('log')">
+Logs
+</button>
+
+</div>
+
+
+<pre id="monitorOutput">
+Selecciona un equipo y una consulta.
+</pre>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     GENERADOR DE SCRIPTS
+===================================================== -->
+
+<section
+id="builder"
+class="page hidden">
+
+<div class="builder-layout">
+
+
+<div class="panel categories">
+
+<h2>
+Configuración
+</h2>
+
+<div id="tabs"></div>
+
+</div>
+
+
+<div class="panel form-panel">
+
+<div class="top">
+
+<div>
+
+<h2 id="formTitle">
+WAN
+</h2>
+
+<p
+id="formDesc"
+class="muted">
+</p>
+
+</div>
+
+<span class="badge">
+RouterOS
+</span>
+
+</div>
+
+
+<div id="form"></div>
+
+
+<div class="safe">
+
+<b>
+Modo seguro
+</b>
+
+
+<label>
+
+<input
+type="checkbox"
+id="backup"
+checked>
+
+Crear backup antes de aplicar
+
+</label>
+
+
+<label>
+
+<input
+type="checkbox"
+id="preview"
+checked>
+
+Mostrar comandos antes de ejecutar
+
+</label>
+
+
+<label>
+
+<input
+type="checkbox"
+id="confirm"
+checked>
+
+Pedir confirmación
+
+</label>
+
+</div>
+
+
+<div class="actions">
+
+<button
+class="secondary"
+onclick="generate()">
+
+⚙ Generar script
+
+</button>
+
+
+<button
+class="primary"
+onclick="applyScript()">
+
+▶ Generar y aplicar
+
+</button>
+
+</div>
+
+</div>
+
+
+<div class="panel output">
+
+<div class="top">
+
+<h2>
+Script generado
+</h2>
+
+<button
+class="secondary"
+onclick="copyScript()">
+
+Copiar
+
+</button>
+
+</div>
+
+
+<pre id="script">
+
+// Selecciona una configuración.
+
+</pre>
+
+
+<div class="apply">
+
+<select id="device">
+
+<option value="">
+Equipo destino...
+</option>
+
+</select>
+
+
+<button
+class="secondary"
+onclick="downloadRsc()">
+
+Descargar .rsc
+
+</button>
+
+</div>
+
+</div>
+
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     HOTSPOT / FICHAS
+===================================================== -->
+
+<section
+id="hotspot"
+class="page hidden">
+
+
+<div class="panel">
+
+<div class="top">
+
+<div>
+
+<h2>
+🎫 Fichas Hotspot
+</h2>
+
+<p class="muted">
+Generación y administración de usuarios Hotspot
+</p>
+
+</div>
+
+</div>
+
+
+<div class="form-grid">
+
+
+<label>
+
+Equipo MikroTik
+
+<select id="hotspotDevice">
+
+<option value="">
+Seleccionar equipo...
+</option>
+
+</select>
+
+</label>
+
+
+<label>
+
+Interfaz Hotspot
+
+<input
+id="hotspotInterface"
+value="bridge"
+placeholder="bridge">
+
+</label>
+
+
+<label>
+
+Nombre del Hotspot
+
+<input
+id="hotspotName"
+value="hotspot1"
+placeholder="hotspot1">
+
+</label>
+
+
+<label>
+
+Gateway
+
+<input
+id="hotspotGateway"
+value="10.10.10.1/24"
+placeholder="10.10.10.1/24">
+
+</label>
+
+
+<label>
+
+Pool
+
+<input
+id="hotspotPool"
+value="10.10.10.10-10.10.10.254"
+placeholder="10.10.10.10-10.10.10.254">
+
+</label>
+
+
+<label>
+
+Perfil
+
+<input
+id="hotspotProfile"
+value="PLAN-10M"
+placeholder="PLAN-10M">
+
+</label>
+
+
+<label>
+
+Velocidad
+
+<input
+id="hotspotRate"
+value="10M/10M"
+placeholder="10M/10M">
+
+</label>
+
+
+<label>
+
+Duración
+
+<input
+id="hotspotDuration"
+value="1d"
+placeholder="1d">
+
+</label>
+
+
+<label>
+
+Cantidad de fichas
+
+<input
+id="hotspotQuantity"
+type="number"
+min="1"
+max="1000"
+value="20">
+
+</label>
+
+
+<label>
+
+Prefijo
+
+<input
+id="hotspotPrefix"
+value="WIFI"
+placeholder="WIFI">
+
+</label>
+
+</div>
+
+
+<div class="actions">
+
+<button
+class="primary"
+onclick="generateHotspot()">
+
+🎫 Generar fichas
+
+</button>
+
+
+<button
+class="secondary"
+onclick="clearHotspot()">
+
+Limpiar
+
+</button>
+
+</div>
+
+</div>
+
+
+<div class="panel">
+
+<div class="top">
+
+<h2>
+Fichas generadas
+</h2>
+
+<div>
+
+<button
+class="secondary"
+onclick="copyHotspot()">
+
+Copiar
+
+</button>
+
+
+<button
+class="secondary"
+onclick="downloadHotspotCSV()">
+
+CSV
+
+</button>
+
+
+<button
+class="secondary"
+onclick="printHotspot()">
+
+Imprimir
+
+</button>
+
+</div>
+
+</div>
+
+
+<div id="hotspotTable">
+
+<div class="empty">
+
+Todavía no se han generado fichas.
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="panel">
+
+<div class="top">
+
+<h2>
+Script Hotspot
+</h2>
+
+
+<button
+class="secondary"
+onclick="copyHotspotScript()">
+
+Copiar
+
+</button>
+
+</div>
+
+
+<pre id="hotspotScript">
+
+# Genera las fichas para obtener el script RouterOS.
+
+</pre>
+
+
+<div class="actions">
+
+<button
+class="primary"
+onclick="applyHotspot()">
+
+▶ Aplicar al MikroTik
+
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     TERMINAL
+===================================================== -->
+
+<section
+id="terminal"
+class="page hidden">
+
+<div class="panel">
+
+<div class="top">
+
+<div>
+
+<h2>
+Terminal RouterOS
+</h2>
+
+<p class="muted">
+Ejecutar comandos remotamente
+</p>
+
+</div>
+
+
+<select id="terminalDevice">
+
+<option value="">
+Equipo destino...
+</option>
+
+</select>
+
+</div>
+
+
+<label>
+
+Comando RouterOS
+
+<textarea
+id="terminalCommand"
+placeholder="/system identity print"></textarea>
+
+</label>
+
+
+<div class="actions">
+
+<button
+class="primary"
+onclick="executeCommand()">
+
+▶ Ejecutar comando
+
+</button>
+
+</div>
+
+
+<pre id="terminalOutput">
+
+Salida del RouterOS...
+
+</pre>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     AUDITORÍA
+===================================================== -->
+
+<section
+id="audit"
+class="page hidden">
+
+<div class="panel">
+
+<div class="top">
+
+<div>
+
+<h2>
+Auditoría
+</h2>
+
+<p class="muted">
+Historial de operaciones realizadas
+</p>
+
+</div>
+
+
+<button
+class="secondary"
+onclick="loadAudit()">
+
+Actualizar
+
+</button>
+
+</div>
+
+
+<div id="auditList">
+
+<div class="empty">
+Cargando auditoría...
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+
+</main>
+
+</div>
+
+
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+
+<script src="/app.js"></script>
+
+<script src="/devices.js"></script>
+
+<script src="/monitor.js"></script>
+
+<script src="/generators.js"></script>
+
+<script src="/builder.js"></script>
+
+<script src="/hotspot.js"></script>
+
+<script src="/terminal.js"></script>
+
+<script src="/audit.js"></script>
+
+
+
+
+</body>
+
+</html>
