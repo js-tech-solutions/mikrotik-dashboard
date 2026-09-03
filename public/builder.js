@@ -1634,7 +1634,7 @@ if (activityEl) {
   };
 
   
-  const grouped = [];
+const grouped = [];
 
 const actionOrder = [
   "MONITOR",
@@ -1644,18 +1644,17 @@ const actionOrder = [
 
 actionOrder.forEach((action) => {
 
-  const rows = recent.filter(
-    (row) => row.action === action
+  const row = recent.find(
+    (item) => item.action === action
   );
 
-  if (!rows.length) {
+  if (!row) {
     return;
   }
 
   grouped.push({
-    ...rows[0],
-    action,
-    count: rows.length
+    ...row,
+    action
   });
 
 });
@@ -1679,11 +1678,7 @@ actionOrder.forEach((action) => {
           const relativeTime =
             formatRelativeTime(row.created_at);
 
-          const countText =
-            row.count > 1
-              ? `${row.count} comprobaciones recientes`
-              : "";
-
+	const countText = "";
           return `
             <div class="audit-row">
 

@@ -31,8 +31,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 app.use(express.json({ limit: "2mb" }));
-app.use(express.static(path.join(__dirname, "public")));
-
+app.use(express.static(path.join(__dirname, "public"), {
+  index: false
+}));
 /* =========================================================
    MANEJO GLOBAL DE ERRORES
    Evita que una excepciÃ³n interna de node-routeros
@@ -251,14 +252,6 @@ async function run(
     driver = await apiFor(d);
 
     const result = await fn(driver);
-
-    await log(
-      id,
-      action,
-      command,
-      true,
-      "OK"
-    );
 
     return res.json({
       ok: true,
@@ -1010,6 +1003,22 @@ app.get(
         req.params.id,
         "MONITOR",
         "/system/resource/print + /interface/print",
+        true,
+        "OK"
+      );
+
+      await log(
+        req.params.id,
+        "INTERFACES",
+        "/interface/print",
+        true,
+        "OK"
+      );
+
+      await log(
+        req.params.id,
+        "RESOURCE",
+        "/system/resource/print",
         true,
         "OK"
       );
